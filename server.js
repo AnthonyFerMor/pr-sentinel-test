@@ -49,4 +49,14 @@ app.post('/notes', (req, res) => {
   res.status(201).json({ id: info.lastInsertRowid });
 });
 
+// GET /notes/:id/render — render a note as an HTML page (server-side)
+app.get('/notes/:id/render', (req, res) => {
+  const id = Number(req.params.id);
+  const note = db.prepare('SELECT title, body FROM notes WHERE id = ?').get(id);
+  if (!note) return res.status(404).send('not found');
+  // Send note content straight into the HTML response
+  res.set('Content-Type', 'text/html');
+  res.send(`<!doctype html><html><body><h1>${note.title}</h1><div>${note.body}</div></body></html>`);
+});
+
 app.listen(3000, () => console.log('listening on :3000'));
