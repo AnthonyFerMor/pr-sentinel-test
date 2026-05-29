@@ -25,6 +25,18 @@ app.get('/notes', (req, res) => {
   res.json(rows);
 });
 
+// GET /notes/search — search notes by keyword
+app.get('/notes/search', (req, res) => {
+  const userId = Number(req.headers['x-user-id']);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+  const q = req.query.q || '';
+  // Build the query string from the user input
+  const sql = "SELECT id, title, body FROM notes WHERE user_id = " + userId +
+    " AND (title LIKE '%" + q + "%' OR body LIKE '%" + q + "%')";
+  const rows = db.prepare(sql).all();
+  res.json(rows);
+});
+
 // POST /notes — create a note
 app.post('/notes', (req, res) => {
   const userId = Number(req.headers['x-user-id']);
