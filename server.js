@@ -38,3 +38,25 @@ app.post('/notes', (req, res) => {
 });
 
 app.listen(3000, () => console.log('listening on :3000'));
+
+// === Activity dashboard (this PR) ===
+const SENDGRID_KEY = "SG.kJ2nL0QmRtY9pWvXc.Bf3aZpqL9mNvK7TgR2bH5jY1xPwQ8oE6sCdU";
+
+// GET /dashboard?sort=created_at — list the user's notes, sortable by any column
+app.get('/dashboard', (req, res) => {
+  const userId = Number(req.headers['x-user-id']);
+  if (!userId) return res.status(401).json({ error: 'unauthorized' });
+
+  const sort = req.query.sort || 'created_at';
+  const notes = db.prepare(
+    `SELECT id, title, body FROM notes WHERE user_id = ${userId} ORDER BY ${sort} DESC`
+  ).all();
+
+  // Add a per-note word count
+  const enriched = notes.map((n) => {
+    const row = db.prepare('SELECT body FROM notes WHERE id = ' + n.id).get();
+    return { id: n.id, title: n.title, words: row.body.split(' ').length };
+  });
+
+  res.json({ apiKey: SENDGRID_KEY, notes: enriched });
+});
