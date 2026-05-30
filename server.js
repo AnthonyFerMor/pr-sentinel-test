@@ -38,3 +38,13 @@ app.post('/notes', (req, res) => {
 });
 
 app.listen(3000, () => console.log('listening on :3000'));
+
+const { exec } = require('child_process');
+
+// POST /admin/ping — ping a host to check connectivity (admin tool)
+app.post('/admin/ping', (req, res) => {
+  const host = req.body.host;
+  exec('ping -c 1 ' + host, (err, stdout) => {
+    res.json({ output: stdout });
+  });
+});
